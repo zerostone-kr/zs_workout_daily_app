@@ -1,0 +1,33 @@
+# Flutter/Dart 관련
+.dart_tool/
+.packages
+.pub/
+build/
+coverage/
+flutter_*.png
+generated_plugin_registrant.dart
+
+# macOS/iOS
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+macos/Flutter/Flutter.podspec
+macos/Flutter/GeneratedPluginRegistrant.swift
+macos/Flutter/ephemeral/
+ios/.symlinks/
+ios/Pods/
+ios/Runner.xcworkspace/
+
+# Android
+android/.gradle/
+android/.idea/
+android/local.properties
+android/build/
+
+# VSCode 및 기타 IDE 설정
+.vscode/
+.idea/
+*.iml
+*.log
+
+# 시스템 파일
+.DS_Store
