@@ -1,16 +1,65 @@
 # zs_workout_daily_app
 
-A new Flutter project.
+iOS와 Android에서 사용할 수 있는 Flutter 기반 운동 일기 앱입니다.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## 📋 프로젝트 요약
 
-A few resources to get you started if this is your first Flutter project:
+이 앱은 사용자가 운동 기록과 신체 지표(몸무게, BMI 등)를 손쉽게 관리할 수 있도록 도와줍니다.  
+사용자 프로필 기반으로 기록을 저장하고, 달력 기반의 몸무게 입력 및 시각화 기능을 제공합니다.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+---
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 🧠 Gen AI 프롬프트 기반 기능 정의
+
+아래는 현재까지 구현된 기능을 Gen AI 프롬프트 형식으로 작성한 예시입니다.
+
+---
+
+### ✅ 프롬프트 1: 사용자 프로필 설정 및 저장
+
+> 성별, 이름, 나이, 키, 몸무게를 입력할 수 있는 사용자 프로필 설정 화면을 구현하세요.  
+> 입력한 정보를 SharedPreferences에 저장하며, 앱 실행 시 프로필이 없으면 설정 화면으로 진입하도록 하세요.  
+> 입력된 키와 몸무게를 이용해 BMI를 자동 계산해 표시합니다.
+
+---
+
+### ✅ 프롬프트 2: 달력 기반 몸무게 기록
+
+> TableCalendar 위젯을 사용하여 달력을 구현하고, 날짜를 클릭하면 몸무게를 입력할 수 있는 팝업을 띄우세요.  
+> 입력된 몸무게는 해당 날짜 아래에 표시되며 로컬에 저장됩니다.
+
+---
+
+### ✅ 프롬프트 3: 몸무게 및 BMI 변화 그래프
+
+> 날짜별로 몸무게와 BMI 변화 추이를 시각화하는 라인 차트를 구현하세요.  
+> BMI는 프로필에 입력된 키를 기준으로 계산하며, 몸무게와 함께 두 개의 차트를 나란히 표시합니다.
+
+---
+
+### ✅ 프롬프트 4: 메인 화면 하단 탭 구성
+
+> 하단 네비게이션 바에 달력, 운동, 설정 3개의 탭을 만들고, 각각 Calendar, Exercise, Settings 화면을 연결하세요.  
+> 초기 진입 화면은 Calendar로 설정합니다.
+
+---
+
+### ✅ 프롬프트 5: 운동 카테고리 및 즐겨찾기 등록
+
+> 상체, 하체, 유산소 카테고리를 선택할 수 있는 탭 UI를 만들고,  
+> 각 카테고리 별로 운동 리스트(영문 + 한글 병기)를 표시하세요.  
+> 운동 항목 우측에 하트 아이콘을 넣어 즐겨찾기 등록/해제가 가능하며, 해당 상태는 SharedPreferences에 저장됩니다.
+
+---
+
+## 🚧 예정된 프롬프트
+
+앞으로 다음과 같은 기능을 프롬프트로 추가할 수 있습니다:
+
+- “날짜별로 수행한 운동을 기록할 수 있도록 하세요.”
+- “몸무게 입력을 위한 알림을 설정할 수 있도록 하세요.”
+- “성별에 따른 신체 이미지와 근육 부위 강조 기능을 구현하세요.”
+
+---
