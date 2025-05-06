@@ -61,7 +61,7 @@ class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
   final List<Widget> _screens = [
     CalendarScreen(),
-    ExerciseScreen(),
+    ExerciseScreen(selectedDate: DateTime.now()), // ✅ 수정
     SettingsScreen(),
   ];
 

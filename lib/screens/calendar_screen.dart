@@ -5,6 +5,7 @@ import '../models/user_profile.dart';
 import '../services/local_storage_service.dart';
 import '../services/weight_record_service.dart';
 import 'weight_bmi_chart_screen.dart';
+import 'exercise_screen.dart';
 
 class CalendarScreen extends StatefulWidget {
   @override
@@ -83,6 +84,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false, // ⛔ 뒤로가기 버튼 제거
         title: Text('운동 일기'),
         centerTitle: true,
         actions: [
@@ -119,12 +121,79 @@ class _CalendarScreenState extends State<CalendarScreen> {
             lastDay: DateTime.utc(2030, 12, 31),
             focusedDay: _focusedDay,
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-            onDaySelected: (selectedDay, focusedDay) {
+            onDaySelected: (selectedDay, focusedDay) async {
+              // 🔒 미래 날짜 차단 (오늘 제외)
+              final today = DateTime.now();
+              final todayOnly = DateTime(today.year, today.month, today.day);
+              final selectedOnly = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+
+              if (selectedOnly.isAfter(todayOnly)) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('미래 날짜에는 기록할 수 없습니다.')),
+                );
+                return;
+              }
+
+
               setState(() {
                 _selectedDay = selectedDay;
                 _focusedDay = focusedDay;
               });
-              _openWeightInputDialog(selectedDay);
+
+              final selectedKey = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+              final weight = _weightMap[selectedKey];
+
+              if (weight != null) {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ExerciseScreen(selectedDate: selectedDay),
+                  ),
+                );
+                if (result == true) await _loadWeightRecords();
+              } else {
+                final controller = TextEditingController();
+
+                final didSave = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text('${selectedDay.year}년 ${selectedDay.month}월 ${selectedDay.day}일 몸무게 입력'),
+                    content: TextField(
+                      controller: controller,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(hintText: '몸무게 (kg)'),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: Text('취소'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final weight = double.tryParse(controller.text);
+                          if (weight != null) {
+                            final record = WeightRecord(date: selectedDay, weight: weight);
+                            await WeightRecordService.saveWeightRecord(record);
+                            await _loadWeightRecords();
+                            Navigator.pop(context, true);
+                          }
+                        },
+                        child: Text('저장'),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (didSave == true) {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ExerciseScreen(selectedDate: selectedDay),
+                    ),
+                  );
+                  if (result == true) await _loadWeightRecords();
+                }
+              }
             },
             calendarBuilders: CalendarBuilders(
               markerBuilder: (context, date, events) {
