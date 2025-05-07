@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/exercise_record_service.dart'; // hypothetical service
 
 class ExerciseScreen extends StatefulWidget {
   final DateTime selectedDate;

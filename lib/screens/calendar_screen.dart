@@ -197,14 +197,27 @@ class _CalendarScreenState extends State<CalendarScreen> {
             },
             calendarBuilders: CalendarBuilders(
               markerBuilder: (context, date, events) {
-                final weight = _weightMap[DateTime(date.year, date.month, date.day)];
-                if (weight != null) {
-                  return Positioned(
-                    bottom: 1,
-                    child: Text(
-                      '${weight.toStringAsFixed(1)}kg',
-                      style: TextStyle(fontSize: 10, color: Colors.blue),
-                    ),
+                final dayKey = DateTime(date.year, date.month, date.day);
+                final weight = _weightMap[dayKey];
+
+                // TODO: Replace with actual async exercise count loading (from storage/service)
+                final int exerciseCount = 0;
+
+                if (weight != null || exerciseCount > 0) {
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      if (weight != null)
+                        Text(
+                          '${weight.toStringAsFixed(1)}kg',
+                          style: TextStyle(fontSize: 10, color: Colors.blue),
+                        ),
+                      if (exerciseCount > 0)
+                        Text(
+                          '운동 $exerciseCount개',
+                          style: TextStyle(fontSize: 9, color: Colors.green),
+                        ),
+                    ],
                   );
                 }
                 return null;
