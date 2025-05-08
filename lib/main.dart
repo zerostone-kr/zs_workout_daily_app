@@ -1,60 +1,87 @@
 import 'package:flutter/material.dart';
-import 'package:table_calendar/table_calendar.dart';
-import '../services/local_storage_service.dart';
-import '../services/exercise_record_service.dart'; // hypothetical service
+import 'screens/calendar_screen.dart';
+import 'screens/exercise_screen.dart';
+import 'screens/profile_setup_screen.dart';
+import 'screens/settings_screen.dart';
+import 'services/local_storage_service.dart';
+import 'models/user_profile.dart';
 
-class CalendarScreen extends StatefulWidget {
+void main() => runApp(MyApp());
+
+/// 앱 전체를 감싸는 루트 위젯
+/// 사용자 프로필 여부에 따라 초기 진입 화면을 결정합니다.
+class MyApp extends StatelessWidget {
   @override
-  State<CalendarScreen> createState() => _CalendarScreenState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: '운동일기',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: InitialScreenSelector(), // ✅ 초기 화면 결정 위젯
+    );
+  }
 }
 
-class _CalendarScreenState extends State<CalendarScreen> {
-  Map<DateTime, double> _weightMap = {};
+/// SharedPreferences에서 사용자 프로필이 있는지 확인 후
+/// ProfileSetupScreen 또는 MainTabScreen을 띄워주는 위젯
+class InitialScreenSelector extends StatelessWidget {
+  Future<Widget> _getStartScreen() async {
+    final UserProfile? profile = await LocalStorageService.loadUserProfile();
 
-  @override
-  void initState() {
-    super.initState();
-    _loadWeightData();
-  }
+    // ✅ 콘솔 로그로 로딩 여부 출력
+    if (profile != null) {
+      print('[main] 사용자 프로필 로딩됨: ${profile.name}, BMI: ${profile.bmi.toStringAsFixed(1)}');
+    } else {
+      print('[main] 사용자 프로필 없음 → 설정화면 이동');
+    }
 
-  Future<void> _loadWeightData() async {
-    final weights = await LocalStorageService.loadWeights();
-    setState(() {
-      _weightMap = weights;
-    });
+    return profile == null ? ProfileSetupScreen() : MainTabScreen();
   }
 
   @override
   Widget build(BuildContext context) {
-    return TableCalendar(
-      focusedDay: DateTime.now(),
-      firstDay: DateTime.utc(2020, 1, 1),
-      lastDay: DateTime.utc(2030, 12, 31),
-      calendarBuilders: CalendarBuilders(
-        markerBuilder: (context, date, events) {
-          final dayKey = DateTime(date.year, date.month, date.day);
-          final weight = _weightMap[dayKey];
-          final exerciseCount = ExerciseRecordService.getExerciseCountForDate(dayKey); // returns int
+    return FutureBuilder<Widget>(
+      future: _getStartScreen(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return snapshot.data!;
+        } else {
+          return Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+      },
+    );
+  }
+}
 
-          if (weight != null || exerciseCount > 0) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                if (weight != null)
-                  Text(
-                    '${weight.toStringAsFixed(1)}kg',
-                    style: TextStyle(fontSize: 10, color: Colors.blue),
-                  ),
-                if (exerciseCount > 0)
-                  Text(
-                    '운동 $exerciseCount개',
-                    style: TextStyle(fontSize: 9, color: Colors.green),
-                  ),
-              ],
-            );
-          }
-          return null;
-        },
+/// 하단 네비게이션 탭을 구성하는 메인 화면 위젯
+class MainTabScreen extends StatefulWidget {
+  @override
+  State<MainTabScreen> createState() => _MainTabScreenState();
+}
+
+class _MainTabScreenState extends State<MainTabScreen> {
+  int _selectedIndex = 0;
+
+  /// 각 탭에 연결될 화면 리스트
+  final List<Widget> _screens = [
+    CalendarScreen(),                                  // 🗓 달력
+    ExerciseScreen(selectedDate: DateTime.now()),      // 🏋 운동 (오늘 날짜 기본값)
+    SettingsScreen(),                                  // ⚙ 설정
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _screens[_selectedIndex], // ✅ 선택된 탭의 화면 출력
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) => setState(() => _selectedIndex = index), // ✅ 탭 전환 처리
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: '달력'),
+          BottomNavigationBarItem(icon: Icon(Icons.fitness_center), label: '운동'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: '설정'),
+        ],
       ),
     );
   }

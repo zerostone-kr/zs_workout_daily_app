@@ -1,46 +1,38 @@
-import 'package:flutter/material.dart';
-import 'package:table_calendar/table_calendar.dart';
-import '../services/exercise_record_service.dart'; // hypothetical service
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/weight_record.dart';
 
-class CalendarScreen extends StatefulWidget {
-  @override
-  _CalendarScreenState createState() => _CalendarScreenState();
-}
+class WeightRecordService {
+  static const _key = 'weight_records';
 
-class _CalendarScreenState extends State<CalendarScreen> {
-  Map<DateTime, double> _weightMap = {};
+  static Future<void> saveWeightRecord(WeightRecord record) async {
+    final prefs = await SharedPreferences.getInstance();
+    final records = await loadWeightRecords();
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: TableCalendar(
-        calendarBuilders: CalendarBuilders(
-          markerBuilder: (context, date, events) {
-            final dayKey = DateTime(date.year, date.month, date.day);
-            final weight = _weightMap[dayKey];
-            final exerciseCount = ExerciseRecordService.getExerciseCountForDate(dayKey); // returns int
+    // 기존 기록 중 같은 날짜 제거
+    records.removeWhere((r) =>
+        r.date.year == record.date.year &&
+        r.date.month == record.date.month &&
+        r.date.day == record.date.day);
 
-            if (weight != null || exerciseCount > 0) {
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  if (weight != null)
-                    Text(
-                      '${weight.toStringAsFixed(1)}kg',
-                      style: TextStyle(fontSize: 10, color: Colors.blue),
-                    ),
-                  if (exerciseCount > 0)
-                    Text(
-                      '운동 $exerciseCount개',
-                      style: TextStyle(fontSize: 9, color: Colors.green),
-                    ),
-                ],
-              );
-            }
-            return null;
-          },
-        ),
-      ),
-    );
+    records.add(record);
+
+    final encoded = jsonEncode(records.map((r) => r.toJson()).toList());
+    await prefs.setString(_key, encoded);
+  }
+
+  static Future<List<WeightRecord>> loadWeightRecords() async {
+    final prefs = await SharedPreferences.getInstance();
+    final data = prefs.getString(_key);
+
+    if (data == null) return [];
+
+    final List<dynamic> decoded = jsonDecode(data);
+    return decoded.map((e) => WeightRecord.fromJson(e)).toList();
+  }
+
+  static Future<void> clearAll() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_key);
   }
 }

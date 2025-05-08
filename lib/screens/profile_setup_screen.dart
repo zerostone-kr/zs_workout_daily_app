@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import '../services/local_storage_service.dart';
-import '../main.dart';
+import '../screens/calendar_screen.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   @override
@@ -68,7 +68,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     await LocalStorageService.saveUserProfile(profile);
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => MainPage()),
+      MaterialPageRoute(builder: (_) => CalendarScreen()),
     );
   }
   
