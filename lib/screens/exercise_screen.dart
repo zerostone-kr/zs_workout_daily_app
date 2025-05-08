@@ -154,34 +154,10 @@ class _ExerciseScreenState extends State<ExerciseScreen> with TickerProviderStat
                                 ),
                               ],
                             ),
-                            Row(
-                              children: [
-                                if (showWeight) ...[
-                                  Expanded(
-                                    child: TextField(
-                                      decoration: InputDecoration(labelText: '무게 (kg)'),
-                                      keyboardType: TextInputType.number,
-                                      onChanged: (val) => ex.weight = double.tryParse(val),
-                                    ),
-                                  ),
-                                  SizedBox(width: 12),
-                                ],
-                                Expanded(
-                                  child: TextField(
-                                    decoration: InputDecoration(labelText: '반복 횟수'),
-                                    keyboardType: TextInputType.number,
-                                    onChanged: (val) => ex.reps = int.tryParse(val) ?? 0,
-                                  ),
-                                ),
-                                SizedBox(width: 12),
-                                Expanded(
-                                  child: TextField(
-                                    decoration: InputDecoration(labelText: '세트 수'),
-                                    keyboardType: TextInputType.number,
-                                    onChanged: (val) => ex.sets = int.tryParse(val) ?? 0,
-                                  ),
-                                ),
-                              ],
+                            // 🔁 Bottom sheet numeric input button row
+                            TextButton(
+                              onPressed: () => _openExerciseInputSheet(index), // ⚠️ If _recordedExercises is not accessible here, it's most likely due to a scope or state issue: ensure _recordedExercises is declared in the State class and used consistently (e.g., not shadowed or redeclared elsewhere).
+                              child: Text('세부 입력 (무게/횟수/세트)', style: TextStyle(color: Colors.blue)),
                             ),
                           ],
                         ),
@@ -194,6 +170,137 @@ class _ExerciseScreenState extends State<ExerciseScreen> with TickerProviderStat
           ),
           Center(child: Text('유산소 탭 준비 중')),
           Center(child: Text('기타 탭 준비 중')),
+        ],
+      ),
+    );
+  }
+}
+
+// 🔁 Reusable NumberInputDialog widget
+class NumberInputDialog extends StatefulWidget {
+  final int initialValue;
+  final String title;
+
+  const NumberInputDialog({required this.initialValue, required this.title});
+
+  @override
+  _NumberInputDialogState createState() => _NumberInputDialogState();
+}
+
+class _NumberInputDialogState extends State<NumberInputDialog> {
+  late int value;
+
+  @override
+  void initState() {
+    super.initState();
+    value = widget.initialValue;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.title),
+      content: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            icon: Icon(Icons.remove),
+            onPressed: () => setState(() => value = (value - 1).clamp(0, 999)),
+          ),
+          Text('$value', style: TextStyle(fontSize: 24)),
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: () => setState(() => value = (value + 1).clamp(0, 999)),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('취소'),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context, value),
+          child: Text('확인'),
+        ),
+      ],
+    );
+  }
+}
+
+// === Moved methods inside _ExerciseScreenState ===
+
+extension _ExerciseScreenStateBottomSheet on _ExerciseScreenState {
+  // 🔁 Bottom sheet for editing exercise details (무게/횟수/세트) at once
+  void _openExerciseInputSheet(int index) {
+    final ex = _recordedExercises[index];
+    int tempSets = ex.sets;
+    int tempReps = ex.reps;
+    double tempWeight = ex.weight ?? 0;
+    final showWeight = !noWeightExercises.contains(ex.name);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (showWeight)
+                _buildCounterRow('무게 (kg)', tempWeight.toInt(), (v) {
+                  setState(() => tempWeight = v.toDouble());
+                }),
+              _buildCounterRow('반복 횟수', tempReps, (v) {
+                setState(() => tempReps = v);
+              }),
+              _buildCounterRow('세트 수', tempSets, (v) {
+                setState(() => tempSets = v);
+              }),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    ex.weight = showWeight ? tempWeight : null;
+                    ex.reps = tempReps;
+                    ex.sets = tempSets;
+                  });
+                  Navigator.pop(context);
+                },
+                child: Text('확인'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // 🔁 Helper widget to build a counter row for bottom sheet
+  Widget _buildCounterRow(String label, int value, void Function(int) onChanged) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(fontSize: 16)),
+          Row(
+            children: [
+              IconButton(
+                icon: Icon(Icons.remove),
+                onPressed: () => onChanged((value - 1).clamp(0, 999)),
+              ),
+              Text('$value', style: TextStyle(fontSize: 18)),
+              IconButton(
+                icon: Icon(Icons.add),
+                onPressed: () => onChanged((value + 1).clamp(0, 999)),
+              ),
+            ],
+          ),
         ],
       ),
     );

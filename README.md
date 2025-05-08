@@ -1,3 +1,4 @@
+👤 작성자: zerostone
 # zs_workout_daily_app
 
 iOS와 Android에서 사용할 수 있는 Flutter 기반 운동 일기 앱입니다.
